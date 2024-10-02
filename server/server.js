@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(cors());
 
 const secret = "@_@_@"; 
-const port = 3000 ||process.env.PORT;
+const port = 3000;
 
 
 const userSchema = new mongoose.Schema({
@@ -40,11 +40,10 @@ const purchaseSchema = new mongoose.Schema({
     courseId: ObjectId
 });
 
-// Define mongoose models
 const userModel = mongoose.model('User', userSchema);
 const adminModel = mongoose.model('Admin', adminSchema);
 const courseModel = mongoose.model('Course', courseSchema);
-const purchaseModel = mongoose.model("purchase", purchaseSchema);
+const purchaseModel = mongoose.model('purchase', purchaseSchema);
 
 const authMiddleware = (req, res, next) => {
     const token = req.headers.token;
@@ -60,16 +59,13 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
-// Connect to MongoDB
-mongoose.connect('');
+mongoose.connect('mongodb://localhost:27017', { useNewUrlParser: true, useUnifiedTopology: true })
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.log('MongoDB connection error:', err));;
 
 
-// Admin routes
 app.post('/admin/signup', async (req, res) => {
-    const { email, password, firstName, lastName } = req.body; // TODO: adding zod validation
-    // TODO: hash the password so plaintext pw is not stored in the DB
-
-    // TODO: Put inside a try catch block
+    const { email, password, firstName, lastName } = req.body;
     await adminModel.create({
         email: email,
         password: password,
@@ -85,7 +81,6 @@ app.post('/admin/signup', async (req, res) => {
 app.post('/admin/login', async function(req, res) {
     const { email, password } = req.body;
 
-    // TODO: ideally password should be hashed, and hence you cant compare the user provided password and the database password
     const admin = await adminModel.findOne({
         email: email,
         password: password
@@ -95,8 +90,6 @@ app.post('/admin/login', async function(req, res) {
         const token = jwt.sign({
             id: admin._id
         }, secret);
-
-        // Do cookie logic
 
         res.json({
             token: token
@@ -108,8 +101,29 @@ app.post('/admin/login', async function(req, res) {
     }
 });
 
-app.post('/admin/courses', authMiddleware, (req, res) => {
-    // logic to create a course
+app.post('/admin/courses', async (req, res) => {
+    try{
+        const { title, description, price, imageUrl } = req.body;
+        if (!title || !description || !price || !imageUrl) {
+            return res.status(400).json({ message: "All fields are required." });
+        }
+        const course = await courseModel.create({
+            title : title,
+            description : description,
+            price : price,
+            imageUrl : imageUrl,
+            creatorId: req.userId
+        });
+
+        res.json({
+            message: 'Course added successfully',
+            course
+        });
+    }
+    catch(err){
+        console.log("error");
+        res.status(500).json({ message: "Internal server error" });
+    }
 });
 
 app.put('/admin/courses/:courseId',  async function(req, res) {
@@ -133,25 +147,9 @@ app.put('/admin/courses/:courseId',  async function(req, res) {
     })
 });
 
-app.get('/admin/courses', async function(req, res) {
-    const adminId = req.userId;
-
-    const courses = await courseModel.find({
-        creatorId: adminId 
-    });
-
-    res.json({
-        message: "Course updated",
-        courses
-    })
-});
-
-// User routes
 app.post('/users/signup', async function(req, res) {
-    const { email, password, firstName, lastName } = req.body; // TODO: adding zod validation
-    // TODO: hash the password so plaintext pw is not stored in the DB
+    const { email, password, firstName, lastName } = req.body; 
     console.log(req);
-    // TODO: Put inside a try catch block
     await userModel.create({
         email: email,
         password: password,
@@ -167,18 +165,14 @@ app.post('/users/signup', async function(req, res) {
 app.post('/users/login', async function(req, res) {
     const { email, password } = req.body;
 
-    // TODO: ideally password should be hashed, and hence you cant compare the user provided password and the database password
     const user = await userModel.findOne({
         email: email,
         password: password
-    }); //[]
-
+    });
     if (user) {
         const token = jwt.sign({
             id: user._id,
         }, secret);
-
-        // Do cookie logic
 
         res.json({
             token: token
@@ -199,14 +193,13 @@ app.get('/users/courses', async function(req, res) {
     })
 });
 
-app.post('/users/courses/:courseId', authMiddleware, async function(req, res) {
+app.post('/users/courses/purchase', authMiddleware, async function(req, res) {
     const userId = req.userId;
     const courseId = req.body.courseId;
-
-    // should check that the user has actually paid the price
+    console.log(courseId);
     await purchaseModel.create({
-        userId,
-        courseId
+        userId : userId,
+        courseId : courseId
     })
 
     res.json({

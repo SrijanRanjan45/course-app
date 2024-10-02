@@ -1,52 +1,119 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import '../style.css'
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [role, setRole] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch courses from the backend
-    const fetchCourses = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/users/courses');
-        setCourses(response.data.courses);
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to load courses');
-        setLoading(false);
-      }
-    };
+    const storedRole = localStorage.getItem('role');
+    setRole(storedRole);
+  }, []);
 
+  useEffect(() => {
+    async function fetchCourses() {
+      const response = await axios.get('http://localhost:3000/users/courses', {
+        headers: { token: localStorage.getItem('token') },
+      });
+      setCourses(response.data.courses);
+    }
     fetchCourses();
   }, []);
 
-  if (loading) {
-    return <p>Loading courses...</p>;
-  }
+  const handleAddCourse = async () => {
+    try {
+      await axios.post(
+        'http://localhost:3000/admin/courses',
+        { title, description, price, imageUrl },
+        {
+          headers: { token: localStorage.getItem('token') },
+        }
+      );
+      alert('Course added successfully');
+    } catch (error) {
+      alert('Failed to add course');
+    }
+  };
 
-  if (error) {
-    return <p>{error}</p>;
-  }
+  const handlePurchaseCourse = async (courseId) => {
+    try {
+      await axios.post(
+        `http://localhost:3000/users/courses/purchase`,
+        {courseId},
+        {
+          headers: { token: localStorage.getItem('token') },
+        }
+      );
+      alert('Course purchased successfully');
+    } catch (error) {
+      alert('Failed to purchase course');
+    }
+  };
+
+  const handleMyCourses = () => {
+    navigate('/mycourses'); 
+  };
 
   return (
     <div className="courses-container">
-      <h2>Available Courses</h2>
+      <h2>Courses</h2>
+      {role === 'user' && (
+        <button onClick={handleMyCourses} className="my-courses-button">
+          My Courses
+        </button>
+      )}
       <div className="courses-list">
-        {courses.length > 0 ? (
-          courses.map((course) => (
-            <div key={course._id} className="course-card">
-              <img src={course.imageUrl} alt={course.title} className="course-image" />
-              <h3>{course.title}</h3>
-              <p>{course.description}</p>
-              <p><strong>Price:</strong> ${course.price}</p>
-            </div>
-          ))
-        ) : (
-          <p>No courses available at the moment.</p>
-        )}
+        {courses.map((course) => (
+          <div key={course._id} className="course-item">
+            <img src={course.imageUrl} alt={course.title} />
+            <h3>{course.title}</h3>
+            <p>{course.description}</p>
+            <p>Price: ${course.price}</p>
+            {role === 'user' && (
+              <button onClick={() => handlePurchaseCourse(course._id)}>
+                Purchase
+              </button>
+            )}
+          </div>
+        ))}
       </div>
+      {role === 'admin' && (
+        <div className="add-course-form">
+          <h3>Add a New Course</h3>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Course Title"
+          />
+          <input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Course Description"
+          />
+          <input
+            type="number"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="Course Price"
+          />
+          <input
+            type="text"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="Image URL"
+          />
+          <button onClick={handleAddCourse}>Add Course</button>
+        </div>
+      )}
     </div>
   );
 };

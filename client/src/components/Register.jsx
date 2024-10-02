@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-// import './style.css';
+import '../style.css';
 
 const Register = () => {
-  // State to capture user input
+  const [role, setRole] = useState('user');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -11,17 +11,21 @@ const Register = () => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  // Handle registration form submission
+  const handleRoleChange = (newRole) => {
+    setRole(newRole);
+  };
+
   const handleRegister = async () => {
   try {
-      const response = await axios.post('http://localhost:3000/users/signup', {
+      const endpoint = role === 'admin' ? '/admin/signup' : '/users/signup';
+      const response = await axios.post('http://localhost:3000' + endpoint, {
         email,
         password,
         firstName,
         lastName
       });
 
-      // Clear form fields upon successful registration
+      
       setEmail('');
       setPassword('');
       setFirstName('');
@@ -37,6 +41,20 @@ const Register = () => {
   return (
     <div className="register-container">
       <h2>Register</h2>
+      <div className="role-selection">
+        <button
+          className={role === 'user' ? 'selected' : ''}
+          onClick={() => handleRoleChange('user')}
+        >
+          Register as User
+        </button>
+        <button
+          className={role === 'admin' ? 'selected' : ''}
+          onClick={() => handleRoleChange('admin')}
+        >
+          Register as Admin
+        </button>
+      </div>
       <div className="register-form">
         <label>First Name:</label>
         <input
@@ -45,7 +63,6 @@ const Register = () => {
           onChange={(e) => setFirstName(e.target.value)}
           placeholder="Enter your first name"
         />
-        
         <label>Last Name:</label>
         <input
           type="text"
@@ -53,7 +70,6 @@ const Register = () => {
           onChange={(e) => setLastName(e.target.value)}
           placeholder="Enter your last name"
         />
-        
         <label>Email:</label>
         <input
           type="email"
@@ -61,7 +77,6 @@ const Register = () => {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter your email"
         />
-        
         <label>Password:</label>
         <input
           type="password"
@@ -69,9 +84,7 @@ const Register = () => {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Enter your password"
         />
-        
         <button onClick={handleRegister}>Register</button>
-        
         {error && <p className="error-message">{error}</p>}
         {successMessage && <p className="success-message">{successMessage}</p>}
       </div>

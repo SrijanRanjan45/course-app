@@ -1,26 +1,37 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-// import './style.css';
+import { useNavigate } from 'react-router-dom';
+import MyCourses from './Mycourses';
+import '../style.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  // Handle login form submission
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://localhost:3000/users/login', { email, password });
+      const response = await axios.post('http://localhost:3000/admin/login', { email, password });
       
-      // Store the token in localStorage on successful login
       localStorage.setItem('token', response.data.token);
-      setError(null);  // Clear any previous errors
-      alert('Login successful!');
-      
-      // Redirect the user or update the UI as needed
-      window.location.href = '/courses'; // Example of a page redirect after login
+      localStorage.setItem('role', 'admin');
+      setError(null); 
+      alert('Logged in as admin!');
+      navigate('/courses');
     } catch (err) {
-      setError('Invalid login credentials. Please try again.');
+      try{
+        const response = await axios.post('http://localhost:3000/users/login', { email, password });
+      
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('role', 'user');
+        setError(null); 
+        alert('Welcome user! Login Successful');
+        navigate('/courses');
+      }
+      catch(err){
+        setError('Invalid login credentials. Please try again.');
+      }
     }
   };
 
