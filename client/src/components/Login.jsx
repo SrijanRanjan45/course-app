@@ -10,7 +10,7 @@ const Login = () => {
   // Handle login form submission
   const handleLogin = async () => {
     try {
-      const response = await axios.post('/users/login', { email, password });
+      const response = await axios.post('http://localhost:3000/users/login', { email, password });
       
       // Store the token in localStorage on successful login
       localStorage.setItem('token', response.data.token);
