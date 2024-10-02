@@ -2,13 +2,16 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const dotenv = require("dotenv");
+const cors=require("cors");
 dotenv.config();
 const app = express();
 const ObjectId = mongoose.Types.ObjectId;
 app.use(express.json());
+app.use(cors());
 
-const secret = process.env.JWT_SECRERT; 
-const port = 3000;
+const secret = "@_@_@"; 
+const port = 3000 ||process.env.PORT;
+
 
 const userSchema = new mongoose.Schema({
     email: { type: String, unique: true },
@@ -58,10 +61,7 @@ const authMiddleware = (req, res, next) => {
 };
 
 // Connect to MongoDB
-// mongoose.connect('mongodb://localhost:27017');
-app.get('/', (req, res) => {
-    res.send('Server is running!');
-});
+mongoose.connect('');
 
 
 // Admin routes
@@ -176,7 +176,7 @@ app.post('/users/login', async function(req, res) {
     if (user) {
         const token = jwt.sign({
             id: user._id,
-        }, JWT_USER_PASSWORD);
+        }, secret);
 
         // Do cookie logic
 
@@ -238,5 +238,5 @@ app.get('/users/purchasedCourses', authMiddleware, async function(req, res) {
 });
 
 app.listen(port, () => {
-    console.log('Server is listening on port 3000');
+    console.log(`Server is listening on port ${port}`);
 });
