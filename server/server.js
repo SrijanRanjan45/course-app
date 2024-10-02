@@ -59,7 +59,7 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
-mongoose.connect('mongodb://localhost:27017', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect('mongodb+srv://admin:yEA5Q16kEJXSzlf9@cluster1.0x4b4.mongodb.net/', { useNewUrlParser: true, useUnifiedTopology: true })
 .then(() => console.log('MongoDB connected'))
 .catch(err => console.log('MongoDB connection error:', err));;
 
