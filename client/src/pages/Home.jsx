@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Login from '../components/Login';
 import Register from '../components/Register';
 import Courses from '../components/Courses';
-import './style.css';
+// import './style.css';
 
 const Home = () => {
   // State to toggle between the components

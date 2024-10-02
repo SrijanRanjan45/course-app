@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './style.css';
+// import './style.css';
 
 const Register = () => {
   // State to capture user input
@@ -13,8 +13,8 @@ const Register = () => {
 
   // Handle registration form submission
   const handleRegister = async () => {
-    try {
-      const response = await axios.post('/users/signup', {
+  try {
+      const response = await axios.post('http://localhost:3000/users/signup', {
         email,
         password,
         firstName,
